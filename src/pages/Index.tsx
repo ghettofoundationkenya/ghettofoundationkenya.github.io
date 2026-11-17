@@ -3,12 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { Heart, Users, BookOpen, Lightbulb, ArrowRight, MapPin, Target, Eye } from 'lucide-react';
+import { sections, news } from '@/content/site';
 import CountUp from 'react-countup';
 
 import mathareAerial from '@/assets/impact/mathare-aerial.jpg';
-import mathareResilienceHero from '@/assets/programs/mathare-resilience-hero.jpg';
-import ujiSatoHero from '@/assets/programs/uji-sato-1.jpg';
-import ghettoYouthsHero from '@/assets/programs/ghetto-youths-hero.jpg';
 import youthDiscussion from '@/assets/impact/youth-discussion.jpg';
 import bottleArt from '@/assets/impact/bottle-art.jpg';
 import childrenCups from '@/assets/impact/children-cups.jpg';
@@ -34,20 +32,20 @@ const impactStats = [
     image: mathareAerial,
   },
   {
-    number: 4,
-    label: "Active Programs",
+    number: 3,
+    label: "Programmes",
     icon: BookOpen,
     collage: collageImages,
   },
   {
-    number: 12,
+    number: new Date().getFullYear() - 2009,
     label: "Years of Impact",
     icon: Heart,
     image: mathareAerial,
   },
   {
-    number: 50,
-    label: "Research Projects",
+    number: 4,
+    label: "Community Planning Platforms",
     icon: Lightbulb,
     image: youthDiscussion,
   },
@@ -76,7 +74,7 @@ const Index = () => {
                     <Heart className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
-                <Link to="/news">
+                <Link to="/publications">
                   <Button className="btn-outline border-white text-white hover:bg-white hover:text-community-warm">
                     Announcements & News
                     <ArrowRight className="ml-2 w-5 h-5" />
@@ -111,7 +109,7 @@ const Index = () => {
                       <img
                         key={idx}
                         src={img}
-                        alt={`collage-${idx}`}
+                        alt={"collage-" + idx}
                         className="w-full h-full object-cover"
                       />
                     ))}
@@ -168,8 +166,8 @@ const Index = () => {
                 <h3>Our Approach</h3>
               </div>
               <p className="text-gray-600 leading-relaxed">
-                Community-led research and action (CLRA) that ensures our programs 
-                are designed by and for the people we serve.
+                PartnerUp! Community-Led Research and Action: residents set the questions,
+                do the research and turn the findings into action.
               </p>
             </div>
           </div>
@@ -180,7 +178,7 @@ const Index = () => {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Programs</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Programmes</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Discover the initiatives transforming lives across Mathare through education,
               empowerment, and community-led action.
@@ -188,26 +186,12 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Mathare Resilience",
-                description: "A multi-purpose community center providing education, skills training, and social justice advocacy.",
-                image: mathareResilienceHero,
-                link: "/programs/mathare-resilience",
-              },
-              {
-                title: "Uji Sato",
-                description: "Communal porridge cooking that nourishes the community and brings neighbors together.",
-                image: ujiSatoHero,
-                link: "/programs/uji-sato",
-              },
-              {
-                title: "Ghetto Youths",
-                description: "Empowering young people in Mathare through mentorship, opportunity, and leadership development.",
-                image: ghettoYouthsHero,
-                link: "/programs/ghetto-youths",
-              },
-            ].map((program, index) => (
+            {sections.map((sec) => ({
+                title: sec.menuLabel,
+                description: sec.lead,
+                image: sec.image,
+                link: sec.path,
+              })).map((program, index) => (
               <Link
                 key={index}
                 to={program.link}
@@ -237,6 +221,31 @@ const Index = () => {
                   </CardContent>
                 </Card>
               </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+      {/* Latest News */}
+      <section className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
+            <h2 className="text-3xl md:text-4xl font-bold">Latest News</h2>
+            <Link to="/publications" className="text-community-warm font-medium hover:underline">All news & publications →</Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {news.slice(0, 3).map((item) => (
+              <Card key={item.title} className="h-full">
+                <CardContent className="p-6">
+                  <p className="text-sm font-semibold text-community-warm mb-2">{item.date}</p>
+                  <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                  <p className="text-gray-600 leading-relaxed">{item.text}</p>
+                  {item.link && (
+                    <Link to={item.link} className="inline-flex items-center mt-4 text-community-warm font-medium">
+                      Read more <ArrowRight className="ml-2 w-4 h-4" />
+                    </Link>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
