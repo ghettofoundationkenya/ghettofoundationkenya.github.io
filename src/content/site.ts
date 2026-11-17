@@ -3,18 +3,20 @@
 // To change a text: edit it here and save. The site updates itself.
 // ─────────────────────────────────────────────────────────────
 
-import researchHero from "@/assets/programs/research-hero.jpg";
-import communityEducation from "@/assets/programs/community-education.jpg";
-import civicHero from "@/assets/programs/civic-education-hero.jpg";
-import youthLeadershipHero from "@/assets/programs/youth-leadership-hero.jpg";
-import youthBusiness from "@/assets/programs/community-youth-business.jpg";
-import ghettoYouthsHero from "@/assets/programs/ghetto-youths-hero.jpg";
-import ujiSato from "@/assets/programs/uji-sato-1.jpg";
-import communityProjectsHero from "@/assets/programs/community-projects-hero.jpg";
-import mathareResilienceHero from "@/assets/programs/mathare-resilience-hero.jpg";
-import ghettoStoriesHero from "@/assets/programs/ghetto-stories-hero.jpg";
-import mathareAerial from "@/assets/mathare-aerial.jpg";
-import communityInnovation from "@/assets/programs/community-innovation.jpg";
+import partnerupImg from "@/assets/gf/partnerup.jpg";
+import democreateImg from "@/assets/gf/democreate.jpg";
+import cluppImg from "@/assets/gf/clupp.jpg";
+import securingImg from "@/assets/gf/securing-the-local.jpg";
+import assumptionsImg from "@/assets/gf/assumptions.jpg";
+import resiliencePathwaysImg from "@/assets/gf/resilience-pathways.jpg";
+import youthImg from "@/assets/gf/youth.jpg";
+import ghettoYouthImg from "@/assets/gf/ghetto-youth.jpg";
+import economicImg from "@/assets/gf/economic-empowerment.jpg";
+import ujiSatoImg from "@/assets/gf/uji-sato.jpg";
+import socialJusticeImg from "@/assets/gf/social-justice.jpg";
+import rightToLifeImg from "@/assets/gf/right-to-life.jpg";
+import resilienceHubImg from "@/assets/gf/resilience-hub.jpg";
+import ghettoStoriesImg from "@/assets/gf/ghetto-stories.jpg";
 
 export type Fact = { label: string; value: string };
 
@@ -48,7 +50,7 @@ export const partnerUp: Section = {
   badge: "Our methodology",
   title: "PartnerUp! Community-Led Research and Action",
   lead: "Residents set the questions, collect and analyse the data, and turn the findings into action.",
-  image: researchHero,
+  image: partnerupImg,
   body: [
     "PartnerUp! is how Ghetto Foundation does research. It builds on Community-Led Research and Action (CLRA), which Ghetto Foundation co-developed with Dr Naomi van Stapele and activists of the Social Justice Movement in Kenya, in response to research that took knowledge out of Mathare without giving anything back.",
     "In PartnerUp!, people who live the situation are researchers and experts in their own right. Community researchers design the questions, gather and analyse the data, and decide with their neighbours what to do with the results. Academic and institutional partners join as partners, not as owners of the knowledge.",
@@ -60,7 +62,7 @@ export const partnerUp: Section = {
       slug: "democreate",
       title: "DEMOCREATE",
       tagline: "Young people shaping democratic education across Europe and Kenya.",
-      image: communityEducation,
+      image: democreateImg,
       facts: [
         { label: "Programme", value: "Horizon Europe" },
         { label: "Ghetto Foundation's role", value: "Leads the Youth Ambassador Programme" },
@@ -74,7 +76,7 @@ export const partnerUp: Section = {
       slug: "clupp",
       title: "CLUPP Safety & Security",
       tagline: "Community-led safety and disaster resilience in four Mathare wards.",
-      image: civicHero,
+      image: cluppImg,
       facts: [
         { label: "Period", value: "2026–2027" },
         { label: "Funder", value: "Kenya Community Development Foundation (KCDF)" },
@@ -90,7 +92,7 @@ export const partnerUp: Section = {
       slug: "securing-the-local",
       title: "Securing the Local",
       tagline: "Bringing youth projects into multi-stakeholder collaborations.",
-      image: youthLeadershipHero,
+      image: securingImg,
       facts: [
         { label: "Period", value: "2016–2019" },
         { label: "Funder", value: "Conflict, Security and Stability Fund (CSSF)" },
@@ -104,7 +106,7 @@ export const partnerUp: Section = {
       slug: "assumptions",
       title: "Assumptions",
       tagline: "How youth-led organisations are included, or left out, of the wider system.",
-      image: youthBusiness,
+      image: assumptionsImg,
       facts: [
         { label: "Period", value: "2017–2020" },
         { label: "Funder", value: "NWO (Dutch Research Council)" },
@@ -118,7 +120,7 @@ export const partnerUp: Section = {
       slug: "resilience-pathways",
       title: "Resilience Pathways",
       tagline: "Five decades of resilience in Mathare and Korogocho.",
-      image: mathareAerial,
+      image: resiliencePathwaysImg,
       facts: [
         { label: "Period", value: "2022–2024" },
         { label: "Partner", value: "International Centre for Frugal Innovation, Erasmus University Rotterdam" },
@@ -144,7 +146,7 @@ export const youth: Section = {
   badge: "Programme",
   title: "Youth",
   lead: "Young women and men from Mathare founded Ghetto Foundation in 2009. Young people are still at its heart.",
-  image: ghettoYouthsHero,
+  image: youthImg,
   body: [
     "Our youth work helps young people in Mathare lead, earn a living and look after their community.",
   ],
@@ -154,7 +156,7 @@ export const youth: Section = {
       slug: "ghetto-youth",
       title: "Ghetto Youth",
       tagline: "Our youth leadership programme.",
-      image: youthLeadershipHero,
+      image: ghettoYouthImg,
       body: [
         "Ghetto Youth is Ghetto Foundation's youth leadership programme. Young people build leadership, communication and organising skills, and take the lead in projects in their own wards.",
         "Through the CLUPP Safety & Security project, twenty youth peer leaders are trained in early warning, de-escalation and mediation, and now run trainings for other young people in their wards.",
@@ -164,7 +166,7 @@ export const youth: Section = {
       slug: "economic-empowerment",
       title: "Economic Empowerment",
       tagline: "Skills and livelihoods for young people.",
-      image: communityInnovation,
+      image: economicImg,
       body: [
         "Economic Empowerment supports young people in Mathare to build skills and livelihoods.",
         "More about this programme will follow soon.",
@@ -174,7 +176,7 @@ export const youth: Section = {
       slug: "uji-sato",
       title: "Uji Sato",
       tagline: "Communal porridge that nourishes and brings neighbours together.",
-      image: ujiSato,
+      image: ujiSatoImg,
       body: [
         "Uji Sato is a communal porridge programme. Large pots of uji are cooked over open fires and shared with children and families in Mathare.",
         "Community volunteers cook, serve and organise each Uji Sato, so every person is served with dignity and care, and neighbours meet around a warm meal.",
@@ -190,7 +192,7 @@ export const socialJustice: Section = {
   badge: "Programme",
   title: "Social Justice",
   lead: "Ghetto Foundation is a founding member of the Mathare Network of Social Justice Centres and the Social Justice Movement in Kenya.",
-  image: civicHero,
+  image: socialJusticeImg,
   body: [
     "We stand with residents for their rights: to life, to safety, to housing and to be heard. In April 2024, when the Mathare River floods displaced thousands of residents, Ghetto Foundation led the community-driven response: emergency relief, documenting displacement and advocating against forced evictions.",
   ],
@@ -200,7 +202,7 @@ export const socialJustice: Section = {
       slug: "right-to-life",
       title: "Right to Life",
       tagline: "Defending the right to life in Mathare.",
-      image: communityProjectsHero,
+      image: rightToLifeImg,
       body: [
         "Right to Life is part of Ghetto Foundation's social justice work in Mathare.",
         "More about this programme will follow soon.",
@@ -210,7 +212,7 @@ export const socialJustice: Section = {
       slug: "mathare-resilience-hub",
       title: "Mathare Resilience Hub",
       tagline: "A community centre for learning, safety and justice.",
-      image: mathareResilienceHero,
+      image: resilienceHubImg,
       body: [
         "The Mathare Resilience Hub will be a multi-purpose community centre at the heart of our work.",
       ],
@@ -227,7 +229,7 @@ export const socialJustice: Section = {
       slug: "ghetto-stories",
       title: "Ghetto Stories",
       tagline: "Mathare told by the people who live it.",
-      image: ghettoStoriesHero,
+      image: ghettoStoriesImg,
       body: [
         "Ghetto Stories collects and shares the stories of Mathare residents, in their own words: written stories, audio testimonies and photo stories about daily life, struggle, resilience and change.",
         "The stories challenge the way Mathare is usually portrayed, and keep the community's history and knowledge alive.",
@@ -306,6 +308,7 @@ export const about = {
     "VU Amsterdam",
     "University College London",
     "Clingendael",
+    "Kituo cha Sheria",
     "Movisie",
   ],
   contact: {
