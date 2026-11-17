@@ -63,9 +63,9 @@ const Footer = () => {
               <h3 className="mb-4 text-lg font-semibold">Quick Links</h3>
               <div className="space-y-2">
                 {[
-                  { label: "About Us", to: "/about/history" },
-                  { label: "Programs", to: "/programs/mathare-resilience" },
-                  { label: "Gallery", to: "/gallery" },
+                  { label: "About Us", to: "/about" },
+                  { label: "Publications & Media", to: "/publications" },
+                  { label: "Contact", to: "/about" },
                 ].map((item, i) => (
                   <Link
                     key={i}
@@ -83,9 +83,9 @@ const Footer = () => {
               <h3 className="mb-4 text-lg font-semibold">Our Programs</h3>
               <div className="space-y-2">
                 {[
-                  { label: "Digital Associates", to: "/programs/digital-associates" },
-                  { label: "Youth Leadership", to: "/programs/youth-leadership" },
-                  { label: "Civic Education", to: "/programs/civic-education" },
+                  { label: "PartnerUp!", to: "/partnerup" },
+                  { label: "Youth", to: "/youth" },
+                  { label: "Social Justice", to: "/social-justice" },
                 ].map((item, i) => (
                   <Link
                     key={i}
