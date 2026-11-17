@@ -26,9 +26,9 @@ const collageImages = [
 
 const impactStats = [
   {
-    number: 1500,
-    label: "Community Members Served",
-    icon: Users,
+    number: new Date().getFullYear() - 2009,
+    label: "Years in Mathare",
+    icon: Heart,
     image: mathareAerial,
   },
   {
@@ -38,16 +38,17 @@ const impactStats = [
     collage: collageImages,
   },
   {
-    number: new Date().getFullYear() - 2009,
-    label: "Years of Impact",
-    icon: Heart,
-    image: mathareAerial,
+    number: 2010,
+    label: "Research partner since",
+    icon: Lightbulb,
+    image: youthDiscussion,
+    isYear: true,
   },
   {
     number: 4,
-    label: "Community Planning Platforms",
-    icon: Lightbulb,
-    image: youthDiscussion,
+    label: "Community-Led Urban Planning Platforms (CLUPPs)",
+    icon: Users,
+    image: mathareAerial,
   },
 ];
 
@@ -123,8 +124,7 @@ const Index = () => {
                 <CardContent className="absolute inset-0 flex flex-col items-center justify-center text-center z-10">
                   <stat.icon className="w-8 h-8 mb-2 text-white" />
                   <div className="countup-number mb-1">
-                    <CountUp end={stat.number} duration={2.5} separator="," />
-                    {stat.label === "Community Members Served" ? "+" : ""}
+                    <CountUp end={stat.number} duration={2.5} separator={stat.isYear ? "" : ","} start={stat.isYear ? 1990 : 0} />
                   </div>
                   <div className="countup-label">{stat.label}</div>
                 </CardContent>
