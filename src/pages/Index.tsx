@@ -6,30 +6,25 @@ import { Heart, Users, BookOpen, Lightbulb, ArrowRight, MapPin, Target, Eye } fr
 import { sections, news } from '@/content/site';
 import CountUp from 'react-countup';
 
-import mathareAerial from '@/assets/impact/mathare-aerial.jpg';
-import youthDiscussion from '@/assets/impact/youth-discussion.jpg';
-import bottleArt from '@/assets/impact/bottle-art.jpg';
-import childrenCups from '@/assets/impact/children-cups.jpg';
-import presenterBlack from '@/assets/impact/presenter-black.jpg';
-import presenterYellow from '@/assets/impact/presenter-yellow.jpg';
-import communityCircle from '@/assets/impact/community-circle.jpg';
-import womenPhone from '@/assets/impact/women-phone.jpg';
+import heroImg from '@/assets/gf/home-hero.jpg';
+import mathareRoofs from '@/assets/gf/mathare-roofs.jpg';
+import researchImg from '@/assets/gf/research.jpg';
+import clupps from '@/assets/gf/clupps.jpg';
+import democreate from '@/assets/gf/democreate.jpg';
+import cleanup from '@/assets/gf/cleanup.jpg';
+import youth from '@/assets/gf/youth.jpg';
+import ghettoYouth from '@/assets/gf/ghetto-youth.jpg';
+import clupp from '@/assets/gf/clupp.jpg';
+import peer from '@/assets/gf/peer.jpg';
 
-const collageImages = [
-  bottleArt,
-  childrenCups,
-  presenterBlack,
-  presenterYellow,
-  communityCircle,
-  womenPhone,
-];
+const collageImages = [democreate, cleanup, youth, ghettoYouth, clupp, peer];
 
 const impactStats = [
   {
     number: new Date().getFullYear() - 2009,
     label: "Years in Mathare",
     icon: Heart,
-    image: mathareAerial,
+    image: mathareRoofs,
   },
   {
     number: 3,
@@ -41,14 +36,14 @@ const impactStats = [
     number: 2010,
     label: "Research partner since",
     icon: Lightbulb,
-    image: youthDiscussion,
+    image: researchImg,
     isYear: true,
   },
   {
     number: 4,
     label: "Community-Led Urban Planning Platforms (CLUPPs)",
     icon: Users,
-    image: mathareAerial,
+    image: clupps,
   },
 ];
 
@@ -56,7 +51,7 @@ const Index = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="relative hero-gradient text-white pb-12 sm:pb-16 md:pb-20 lg:pb-32 min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center">
+      <section style={{ backgroundImage: "url(" + heroImg + ")" }} className="relative hero-gradient text-white pb-12 sm:pb-16 md:pb-20 lg:pb-32 min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 sm:space-y-8 animate-fade-in">
