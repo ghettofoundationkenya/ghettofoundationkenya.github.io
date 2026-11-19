@@ -28,6 +28,8 @@ const AdminDashboard = () => {
   const [donations, setDonations] = useState<any[]>([]);
   const [contacts, setContacts] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
+  const [pages, setPages] = useState<any[]>([]);
+  const [pageForm, setPageForm] = useState({ slug: '', title: '', page_type: 'standard', content: '{\n  "sections": []\n}', seo_title: '', seo_description: '', hero_image: '', status: 'draft' });
 
   // Form states
   const [eventForm, setEventForm] = useState({ title: '', description: '', location: '', event_date: '', event_time: '', is_published: true });
@@ -46,8 +48,10 @@ const AdminDashboard = () => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { navigate('/admin/login'); return; }
-      const { data } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id).eq('role', 'admin').single();
-      if (!data) { navigate('/admin/login'); return; }
+      const allowedEmails = ['sndambuki155@gmail.com', 'management@ghettofoundationkenya.org'];
+      if (!session.user.email || !allowedEmails.includes(session.user.email.toLowerCase())) { await supabase.auth.signOut(); navigate('/admin/login'); return; }
+      const { data, error } = await supabase.from('user_roles').select('role').eq('user_id', session.user.id).eq('role', 'admin').maybeSingle();
+      if (error || !data) { navigate('/admin/login'); return; }
       setLoading(false);
       fetchAll();
     };
@@ -65,6 +69,7 @@ const AdminDashboard = () => {
       supabase.from('donations').select('*').order('created_at', { ascending: false }),
       supabase.from('contact_submissions').select('*').order('created_at', { ascending: false }),
       supabase.from('programs').select('*').order('display_order', { ascending: true }),
+      supabase.from('site_pages').select('*').order('updated_at', { ascending: false }),
     ]);
     setVolunteers(v.data || []);
     setEvents(e.data || []);
@@ -75,7 +80,24 @@ const AdminDashboard = () => {
     setDonations(d.data || []);
     setContacts(c.data || []);
     setPrograms(p.data || []);
+    const pageResult = await supabase.from('site_pages').select('*').order('updated_at', { ascending: false });
+    setPages(pageResult.data || []);
   };
+
+  const savePage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let parsedContent: any;
+    try { parsedContent = JSON.parse(pageForm.content); }
+    catch { toast({ title: 'Invalid page content', description: 'Content must be valid JSON.', variant: 'destructive' }); return; }
+    const payload = { ...pageForm, content: parsedContent, published_at: pageForm.status === 'published' ? new Date().toISOString() : null, updated_at: new Date().toISOString() };
+    const { error } = await supabase.from('site_pages').upsert(payload, { onConflict: 'slug' });
+    if (error) { toast({ title: 'Could not save page', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: 'Page saved', description: 'The CMS page record has been saved.' });
+    setPageForm({ slug: '', title: '', page_type: 'standard', content: '{\\n  "sections": []\\n}', seo_title: '', seo_description: '', hero_image: '', status: 'draft' });
+    fetchAll();
+  };
+
+  const editPage = (page: any) => setPageForm({ slug: page.slug, title: page.title, page_type: page.page_type || 'standard', content: JSON.stringify(page.content || {}, null, 2), seo_title: page.seo_title || '', seo_description: page.seo_description || '', hero_image: page.hero_image || '', status: page.status || 'draft' });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -184,8 +206,9 @@ const AdminDashboard = () => {
           <Card><CardContent className="p-4 flex items-center gap-3"><Mail className="w-7 h-7 text-destructive" /><div><div className="text-2xl font-bold">{contacts.filter(c => !c.is_read).length}</div><div className="text-xs text-muted-foreground">Unread</div></div></CardContent></Card>
         </div>
 
-        <Tabs defaultValue="gallery">
+        <Tabs defaultValue="pages">
           <TabsList className="mb-4 flex-wrap h-auto gap-1">
+            <TabsTrigger value="pages"><BookOpen className="w-4 h-4 mr-1" />Pages CMS</TabsTrigger>
             <TabsTrigger value="gallery"><Image className="w-4 h-4 mr-1" />Gallery</TabsTrigger>
             <TabsTrigger value="team"><UserCheck className="w-4 h-4 mr-1" />Team</TabsTrigger>
             <TabsTrigger value="sponsors"><Handshake className="w-4 h-4 mr-1" />Sponsors</TabsTrigger>
@@ -196,6 +219,39 @@ const AdminDashboard = () => {
             <TabsTrigger value="donations"><DollarSign className="w-4 h-4 mr-1" />Donations</TabsTrigger>
             <TabsTrigger value="contacts"><Mail className="w-4 h-4 mr-1" />Contacts</TabsTrigger>
           </TabsList>
+
+          {/* ===== SITE PAGES CMS TAB ===== */}
+          <TabsContent value="pages">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader><CardTitle>Create or Edit a Website Page</CardTitle></CardHeader>
+                <CardContent>
+                  <form onSubmit={savePage} className="space-y-4">
+                    <div><Label>Page title *</Label><Input value={pageForm.title} onChange={e => setPageForm(f => ({ ...f, title: e.target.value }))} required /></div>
+                    <div><Label>Page URL slug *</Label><Input value={pageForm.slug} onChange={e => setPageForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') }))} placeholder="about or youth/ghetto-youth" required /></div>
+                    <div><Label>Page type</Label><Input value={pageForm.page_type} onChange={e => setPageForm(f => ({ ...f, page_type: e.target.value }))} /></div>
+                    <div><Label>Hero image URL</Label><Input value={pageForm.hero_image} onChange={e => setPageForm(f => ({ ...f, hero_image: e.target.value }))} placeholder="https://..." /></div>
+                    <div><Label>Page content (JSON)</Label><Textarea rows={12} value={pageForm.content} onChange={e => setPageForm(f => ({ ...f, content: e.target.value }))} className="font-mono text-xs" /></div>
+                    <div><Label>SEO title</Label><Input value={pageForm.seo_title} onChange={e => setPageForm(f => ({ ...f, seo_title: e.target.value }))} /></div>
+                    <div><Label>SEO description</Label><Textarea rows={2} value={pageForm.seo_description} onChange={e => setPageForm(f => ({ ...f, seo_description: e.target.value }))} /></div>
+                    <div><Label>Publication status</Label><Select value={pageForm.status} onValueChange={v => setPageForm(f => ({ ...f, status: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem></SelectContent></Select></div>
+                    <Button type="submit" className="w-full btn-hero">Save Page</Button>
+                  </form>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader><CardTitle>Website Pages ({pages.length})</CardTitle></CardHeader>
+                <CardContent><div className="space-y-3 max-h-[760px] overflow-y-auto">
+                  {pages.length === 0 ? <p className="text-muted-foreground text-center py-8">No CMS pages have been created yet.</p> : pages.map(page => (
+                    <div key={page.id} className="border rounded-lg p-3 flex items-start justify-between gap-3">
+                      <div className="min-w-0"><h3 className="font-semibold">{page.title}</h3><p className="text-xs text-muted-foreground">/{page.slug}</p><Badge variant={page.status === 'published' ? 'default' : 'secondary'} className="mt-2">{page.status}</Badge></div>
+                      <Button type="button" variant="outline" size="sm" onClick={() => editPage(page)}>Edit</Button>
+                    </div>
+                  ))}
+                </div></CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           {/* ===== GALLERY TAB ===== */}
           <TabsContent value="gallery">
