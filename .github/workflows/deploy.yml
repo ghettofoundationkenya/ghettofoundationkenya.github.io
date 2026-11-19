@@ -21,7 +21,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      # GitHub Pages has no redirects: serve the app for every page link (fixes the 404 bug)
+      # Create real static entry files so known React routes return HTTP 200 on GitHub Pages.
+      - run: node scripts/create-route-pages.mjs
+      # Keep a React fallback for unknown URLs; known routes are served by their own index.html.
       - run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
