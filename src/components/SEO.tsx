@@ -145,10 +145,6 @@ const SEO = () => {
         "@type": "Place",
         name: "Mathare, Nairobi, Kenya",
       },
-      sameAs: [
-        "https://www.matharesocialjustice.org/",
-        "https://pbi-kenya.org/es/our-partners/continued-support-social-justice-centres-kenya",
-      ],
     });
   }, [pathname]);
 
