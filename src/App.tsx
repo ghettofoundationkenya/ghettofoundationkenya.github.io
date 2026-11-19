@@ -10,6 +10,8 @@ import { partnerUp, youth, socialJustice } from "./content/site";
 import { SectionPage, DetailPage, PublicationsPage, AboutPage } from "./pages/ContentPages";
 
 const Donate = lazy(() => import("./pages/Donate"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -56,6 +58,11 @@ const App = () => (
             <Route path="/publications" element={<PublicationsPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/donate" element={<Donate />} />
+
+            {/* Protected administration portal */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+
             {Object.entries(redirects).map(([from, to]) => (
               <Route key={from} path={from} element={<Navigate to={to} replace />} />
             ))}
