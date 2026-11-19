@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const SITE = "https://ghettofoundationkenya.org";
 
@@ -151,6 +152,32 @@ const SEO = () => {
         name: "Mathare, Nairobi, Kenya",
       },
     });
+  }, [normalizedPath]);
+
+  useEffect(() => {
+    let active = true;
+    const slug = normalizedPath === "/" ? "home" : normalizedPath.slice(1);
+    supabase.from("site_pages" as any)
+      .select("seo_title, seo_description")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .maybeSingle()
+      .then(({ data, error }: any) => {
+        if (!active || error || !data) return;
+        const title = data.seo_title?.trim() || pages[normalizedPath]?.title;
+        const description = data.seo_description?.trim() || pages[normalizedPath]?.description;
+        if (title) {
+          document.title = title;
+          setMeta("og:title", title, "property");
+          setMeta("twitter:title", title);
+        }
+        if (description) {
+          setMeta("description", description);
+          setMeta("og:description", description, "property");
+          setMeta("twitter:description", description);
+        }
+      });
+    return () => { active = false; };
   }, [normalizedPath]);
 
   return null;
