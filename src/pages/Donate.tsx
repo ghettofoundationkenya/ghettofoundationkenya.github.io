@@ -41,8 +41,12 @@ const Donate = () => {
       title: "International Online Money Transfer",
       icon: Globe,
       details: [
-        "Platform: WorldRemit.com",
-        "Recipient Name:SAMUEL KIRIRO WAIRIMU",
+        "Platforms: WorldRemit or Remitly",
+        "https://www.worldremit.com",
+        "https://www.remitly.com",
+        "Recipient Name: SAMUEL KIRIRO WAIRIMU",
+        "Phone: +254 720 847 102",
+        "City: Nairobi, Kenya",
         "Email: management@ghettofoundationkenya.org"
       ]
     }
@@ -85,7 +89,13 @@ const Donate = () => {
                 <CardContent className="space-y-3">
                   {method.details.map((detail, detailIndex) => (
                     <p key={detailIndex} className="text-gray-600 leading-relaxed text-sm sm:text-base break-words">
-                      {detail}
+                      {detail.startsWith("https://") ? (
+                        <a href={detail} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+                          {detail.replace("https://www.", "")}
+                        </a>
+                      ) : (
+                        detail
+                      )}
                     </p>
                   ))}
                 </CardContent>
