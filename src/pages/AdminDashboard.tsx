@@ -30,6 +30,10 @@ const AdminDashboard = () => {
   const [programs, setPrograms] = useState<any[]>([]);
   const [pages, setPages] = useState<any[]>([]);
   const [pageForm, setPageForm] = useState({ slug: '', title: '', page_type: 'standard', content: '{\n  "sections": []\n}', seo_title: '', seo_description: '', hero_image: '', status: 'draft' });
+  const [pageLead, setPageLead] = useState('');
+  const [pageIntro, setPageIntro] = useState('');
+  const [pageSections, setPageSections] = useState<any[]>([]);
+  const [sectionDraft, setSectionDraft] = useState({ heading: '', body: '' });
 
   // Form states
   const [eventForm, setEventForm] = useState({ title: '', description: '', location: '', event_date: '', event_time: '', is_published: true });
@@ -85,18 +89,38 @@ const AdminDashboard = () => {
 
   const savePage = async (e: React.FormEvent) => {
     e.preventDefault();
-    let parsedContent: any;
-    try { parsedContent = JSON.parse(pageForm.content); }
-    catch { toast({ title: 'Invalid page content', description: 'Content must be valid JSON.', variant: 'destructive' }); return; }
+    const parsedContent = {
+      lead: pageLead.trim(),
+      intro: pageIntro.trim(),
+      sections: pageSections,
+    };
     const payload = { ...pageForm, content: parsedContent, published_at: pageForm.status === 'published' ? new Date().toISOString() : null, updated_at: new Date().toISOString() };
     const { error } = await supabase.from('site_pages' as any).upsert(payload, { onConflict: 'slug' });
     if (error) { toast({ title: 'Could not save page', description: error.message, variant: 'destructive' }); return; }
     toast({ title: 'Page saved', description: 'The CMS page record has been saved.' });
     setPageForm({ slug: '', title: '', page_type: 'standard', content: '{\n  "sections": []\n}', seo_title: '', seo_description: '', hero_image: '', status: 'draft' });
+    setPageLead('');
+    setPageIntro('');
+    setPageSections([]);
+    setSectionDraft({ heading: '', body: '' });
     fetchAll();
   };
 
-  const editPage = (page: any) => setPageForm({ slug: page.slug, title: page.title, page_type: page.page_type || 'standard', content: JSON.stringify(page.content || {}, null, 2), seo_title: page.seo_title || '', seo_description: page.seo_description || '', hero_image: page.hero_image || '', status: page.status || 'draft' });
+  const editPage = (page: any) => {
+    const content = page.content || {};
+    setPageForm({ slug: page.slug, title: page.title, page_type: page.page_type || 'standard', content: JSON.stringify(content, null, 2), seo_title: page.seo_title || '', seo_description: page.seo_description || '', hero_image: page.hero_image || '', status: page.status || 'draft' });
+    setPageLead(content.lead || '');
+    setPageIntro(content.intro || '');
+    setPageSections(Array.isArray(content.sections) ? content.sections : []);
+    setSectionDraft({ heading: '', body: '' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const addPageSection = () => {
+    if (!sectionDraft.heading.trim() && !sectionDraft.body.trim()) return;
+    setPageSections(items => [...items, { type: 'text', heading: sectionDraft.heading.trim(), body: sectionDraft.body.trim() }]);
+    setSectionDraft({ heading: '', body: '' });
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -229,8 +253,33 @@ const AdminDashboard = () => {
                     <div><Label>Page title *</Label><Input value={pageForm.title} onChange={e => setPageForm(f => ({ ...f, title: e.target.value }))} required /></div>
                     <div><Label>Page URL slug *</Label><Input value={pageForm.slug} onChange={e => setPageForm(f => ({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') }))} placeholder="about or youth/ghetto-youth" required /></div>
                     <div><Label>Page type</Label><Input value={pageForm.page_type} onChange={e => setPageForm(f => ({ ...f, page_type: e.target.value }))} /></div>
-                    <div><Label>Hero image URL</Label><Input value={pageForm.hero_image} onChange={e => setPageForm(f => ({ ...f, hero_image: e.target.value }))} placeholder="https://..." /></div>
-                    <div><Label>Page content (JSON)</Label><Textarea rows={12} value={pageForm.content} onChange={e => setPageForm(f => ({ ...f, content: e.target.value }))} className="font-mono text-xs" /></div>
+                    <div>
+                      <Label>Hero image</Label>
+                      <Input type="file" accept="image/*" disabled={uploading} onChange={e => handleImageUpload(e, url => setPageForm(f => ({ ...f, hero_image: url })), 'pages')} />
+                      <Input className="mt-2" value={pageForm.hero_image} onChange={e => setPageForm(f => ({ ...f, hero_image: e.target.value }))} placeholder="Or paste an image URL" />
+                      {pageForm.hero_image && <img src={pageForm.hero_image} alt="Page hero preview" className="mt-3 h-36 w-full rounded-lg object-cover" />}
+                    </div>
+                    <div className="space-y-3 rounded-lg border p-4">
+                      <div><h3 className="font-semibold">Page introduction</h3><p className="text-sm text-muted-foreground">These fields appear below the page title.</p></div>
+                      <div><Label>Short introduction / lead</Label><Textarea rows={2} value={pageLead} onChange={e => setPageLead(e.target.value)} placeholder="A short statement introducing this page..." /></div>
+                      <div><Label>Opening text</Label><Textarea rows={4} value={pageIntro} onChange={e => setPageIntro(e.target.value)} placeholder="Write the opening paragraphs for this page..." /></div>
+                    </div>
+                    <div className="space-y-4 rounded-lg border p-4">
+                      <div><h3 className="font-semibold">Page sections</h3><p className="text-sm text-muted-foreground">Add sections using headings and ordinary text. You can add several sections and reorder them by removing and adding them again.</p></div>
+                      {pageSections.length > 0 && <div className="space-y-2">
+                        {pageSections.map((section, index) => <div key={index} className="flex items-start justify-between gap-3 rounded-md bg-muted p-3">
+                          <div className="min-w-0"><p className="font-medium">{section.heading || 'Text section'}</p><p className="text-sm text-muted-foreground line-clamp-2">{Array.isArray(section.body) ? section.body.join(' ') : section.body || section.quote || 'No body text'}</p><Badge variant="outline" className="mt-1">{section.type || 'text'}</Badge></div>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => setPageSections(items => items.filter((_, i) => i !== index))}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        </div>)}
+                      </div>}
+                      <div className="space-y-2 rounded-md border border-dashed p-3">
+                        <Label>Section heading</Label>
+                        <Input value={sectionDraft.heading} onChange={e => setSectionDraft(f => ({ ...f, heading: e.target.value }))} placeholder="e.g. Our Mission" />
+                        <Label>Section text</Label>
+                        <Textarea rows={5} value={sectionDraft.body} onChange={e => setSectionDraft(f => ({ ...f, body: e.target.value }))} placeholder="Write the content for this section..." />
+                        <Button type="button" variant="outline" onClick={addPageSection} disabled={!sectionDraft.heading.trim() && !sectionDraft.body.trim()}><Plus className="mr-2 h-4 w-4" />Add section</Button>
+                      </div>
+                    </div>
                     <div><Label>SEO title</Label><Input value={pageForm.seo_title} onChange={e => setPageForm(f => ({ ...f, seo_title: e.target.value }))} /></div>
                     <div><Label>SEO description</Label><Textarea rows={2} value={pageForm.seo_description} onChange={e => setPageForm(f => ({ ...f, seo_description: e.target.value }))} /></div>
                     <div><Label>Publication status</Label><Select value={pageForm.status} onValueChange={v => setPageForm(f => ({ ...f, status: v }))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem></SelectContent></Select></div>
