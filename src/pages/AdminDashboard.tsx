@@ -29,6 +29,7 @@ const AdminDashboard = () => {
   const [contacts, setContacts] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
   const [pages, setPages] = useState<any[]>([]);
+  const [selectedPageIds, setSelectedPageIds] = useState<string[]>([]);
   const [pageForm, setPageForm] = useState({ slug: '', title: '', page_type: 'standard', content: '{\n  "sections": []\n}', seo_title: '', seo_description: '', hero_image: '', status: 'draft' });
   const [pageLead, setPageLead] = useState('');
   const [pageIntro, setPageIntro] = useState('');
@@ -122,6 +123,17 @@ const AdminDashboard = () => {
     setSectionDraft({ heading: '', body: '' });
   };
 
+  const togglePageSelection = (id: string) => setSelectedPageIds(ids => ids.includes(id) ? ids.filter(item => item !== id) : [...ids, id]);
+  const toggleAllPages = () => setSelectedPageIds(ids => ids.length === pages.length ? [] : pages.map(page => page.id));
+  const deleteSelectedPages = async () => {
+    const selected = pages.filter(page => selectedPageIds.includes(page.id));
+    if (!selected.length) return;
+    if (!window.confirm(`Permanently delete ${selected.length} selected page(s)?\\n\\n${selected.map(page => page.title).join(', ')}\\n\\nThis cannot be undone.`)) return;
+    const { error } = await supabase.from('site_pages' as any).delete().in('id', selectedPageIds);
+    if (error) { toast({ title: 'Could not delete selected pages', description: error.message, variant: 'destructive' }); return; }
+    setSelectedPageIds([]); toast({ title: 'Selected pages deleted' }); fetchAll();
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/admin/login');
@@ -205,30 +217,33 @@ const AdminDashboard = () => {
   const galleryCategories = ['General', 'Mathare Resilience', 'Digital Associates', 'Community Projects', 'Our Research', 'Youth Leadership', 'Civic Education', 'Events', 'Uji Sato'];
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-[#f4f6fb]">
       {/* Header */}
-      <header className="bg-background border-b sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-50 border-b border-white/20 bg-slate-950 text-white shadow-lg">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <LayoutDashboard className="w-6 h-6 text-primary" />
-            <h1 className="text-xl font-bold">Admin Dashboard</h1>
+            <div className="rounded-2xl bg-gradient-to-br from-orange-400 via-pink-500 to-violet-600 p-2.5 shadow-lg"><LayoutDashboard className="h-6 w-6 text-white" /></div>
+            <div><h1 className="text-xl font-bold tracking-tight">Ghetto Foundation</h1><p className="text-xs text-slate-300">Content management studio</p></div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
+          <Button className="border-white/20 bg-white/10 text-white hover:bg-white/20" variant="outline" size="sm" onClick={handleLogout}>
             <LogOut className="w-4 h-4 mr-2" /> Logout
           </Button>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-          <Card><CardContent className="p-4 flex items-center gap-3"><Users className="w-7 h-7 text-community-nature" /><div><div className="text-2xl font-bold">{volunteers.length}</div><div className="text-xs text-muted-foreground">Volunteers</div></div></CardContent></Card>
-          <Card><CardContent className="p-4 flex items-center gap-3"><Calendar className="w-7 h-7 text-community-trust" /><div><div className="text-2xl font-bold">{events.length}</div><div className="text-xs text-muted-foreground">Events</div></div></CardContent></Card>
-          <Card><CardContent className="p-4 flex items-center gap-3"><Newspaper className="w-7 h-7 text-primary" /><div><div className="text-2xl font-bold">{news.length}</div><div className="text-xs text-muted-foreground">News</div></div></CardContent></Card>
-          <Card><CardContent className="p-4 flex items-center gap-3"><Image className="w-7 h-7 text-community-warm" /><div><div className="text-2xl font-bold">{gallery.length}</div><div className="text-xs text-muted-foreground">Gallery</div></div></CardContent></Card>
-          <Card><CardContent className="p-4 flex items-center gap-3"><Mail className="w-7 h-7 text-destructive" /><div><div className="text-2xl font-bold">{contacts.filter(c => !c.is_read).length}</div><div className="text-xs text-muted-foreground">Unread</div></div></CardContent></Card>
+      <div className="mx-auto max-w-7xl px-4 py-7">
+        <section className="relative mb-6 overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 p-7 text-white shadow-xl md:p-9">
+          <div className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full bg-pink-400/20 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-28 right-1/3 h-64 w-64 rounded-full bg-cyan-300/20 blur-2xl" />
+          <div className="relative max-w-2xl"><p className="mb-2 text-xs font-bold uppercase tracking-[.25em] text-fuchsia-200">Website control room</p><h2 className="text-3xl font-black tracking-tight md:text-4xl">Your work. Your stories. Your platform.</h2><p className="mt-3 max-w-xl text-sm leading-6 text-indigo-100 md:text-base">Manage pages, community stories, programmes and the people connecting with Ghetto Foundation.</p></div>
+        </section>
+        <div className="mb-7 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          <div className="rounded-3xl bg-gradient-to-br from-orange-400 to-rose-500 p-5 text-white shadow-lg"><BookOpen className="mb-4 h-7 w-7" /><div className="text-3xl font-black">{pages.length}</div><div className="text-sm font-semibold text-white/85">Website pages</div></div>
+          <div className="rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-700 p-5 text-white shadow-lg"><Image className="mb-4 h-7 w-7" /><div className="text-3xl font-black">{gallery.length}</div><div className="text-sm font-semibold text-white/85">Gallery items</div></div>
+          <div className="rounded-3xl bg-gradient-to-br from-emerald-400 to-teal-700 p-5 text-white shadow-lg"><Users className="mb-4 h-7 w-7" /><div className="text-3xl font-black">{volunteers.length}</div><div className="text-sm font-semibold text-white/85">Volunteers</div></div>
+          <div className="rounded-3xl bg-gradient-to-br from-violet-500 to-indigo-800 p-5 text-white shadow-lg"><Calendar className="mb-4 h-7 w-7" /><div className="text-3xl font-black">{events.length}</div><div className="text-sm font-semibold text-white/85">Events</div></div>
+          <div className="col-span-2 rounded-3xl bg-gradient-to-br from-pink-500 to-fuchsia-800 p-5 text-white shadow-lg md:col-span-1"><Mail className="mb-4 h-7 w-7" /><div className="text-3xl font-black">{contacts.filter(c => !c.is_read).length}</div><div className="text-sm font-semibold text-white/85">Unread messages</div></div>
         </div>
-
         <Tabs defaultValue="pages">
           <TabsList className="mb-4 flex-wrap h-auto gap-1">
             <TabsTrigger value="pages"><BookOpen className="w-4 h-4 mr-1" />Pages CMS</TabsTrigger>
@@ -287,16 +302,29 @@ const AdminDashboard = () => {
                   </form>
                 </CardContent>
               </Card>
-              <Card>
-                <CardHeader><CardTitle>Website Pages ({pages.length})</CardTitle></CardHeader>
-                <CardContent><div className="space-y-3 max-h-[760px] overflow-y-auto">
-                  {pages.length === 0 ? <p className="text-muted-foreground text-center py-8">No CMS pages have been created yet.</p> : pages.map(page => (
-                    <div key={page.id} className="border rounded-lg p-3 flex items-start justify-between gap-3">
-                      <div className="min-w-0"><h3 className="font-semibold">{page.title}</h3><p className="text-xs text-muted-foreground">/{page.slug}</p><Badge variant={page.status === 'published' ? 'default' : 'secondary'} className="mt-2">{page.status}</Badge></div>
-                      <Button type="button" variant="outline" size="sm" onClick={() => editPage(page)}>Edit</Button>
-                    </div>
-                  ))}
-                </div></CardContent>
+              <Card className="overflow-hidden rounded-3xl border-0 shadow-xl">
+                <CardHeader className="bg-gradient-to-r from-slate-900 to-indigo-900 text-white">
+                  <div className="flex flex-wrap items-center justify-between gap-3"><div><CardTitle>Website Pages</CardTitle><p className="mt-1 text-sm text-indigo-200">{pages.length} pages in your CMS</p></div><Badge className="border-white/20 bg-white/15 text-white">{selectedPageIds.length} selected</Badge></div>
+                </CardHeader>
+                <CardContent className="space-y-4 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium"><input type="checkbox" checked={pages.length > 0 && selectedPageIds.length === pages.length} onChange={toggleAllPages} className="h-4 w-4 accent-violet-600" />Select all pages</label>
+                    <Button type="button" size="sm" variant="destructive" disabled={selectedPageIds.length === 0} onClick={deleteSelectedPages}><Trash2 className="mr-2 h-4 w-4" />Delete selected ({selectedPageIds.length})</Button>
+                  </div>
+                  <div className="grid max-h-[680px] grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2">
+                    {pages.length === 0 ? <p className="col-span-full py-8 text-center text-muted-foreground">No CMS pages have been created yet.</p> : pages.map((page, index) => (
+                      <div key={page.id} className={`group relative overflow-hidden rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-lg ${selectedPageIds.includes(page.id) ? 'border-violet-500 bg-violet-50 ring-2 ring-violet-200' : 'border-slate-200 bg-white'}`}>
+                        <div className={`absolute inset-x-0 top-0 h-1 ${['bg-orange-400','bg-cyan-500','bg-emerald-500','bg-violet-500','bg-pink-500'][index % 5]}`} />
+                        <div className="flex items-start justify-between gap-3 pt-2">
+                          <label className="flex min-w-0 cursor-pointer items-start gap-3"><input type="checkbox" checked={selectedPageIds.includes(page.id)} onChange={() => togglePageSelection(page.id)} className="mt-1 h-4 w-4 accent-violet-600" /><span className="min-w-0"><span className="block truncate font-bold text-slate-900">{page.title}</span><span className="mt-1 block truncate text-xs text-slate-500">/{page.slug}</span></span></label>
+                          <Badge variant={page.status === 'published' ? 'default' : 'secondary'}>{page.status}</Badge>
+                        </div>
+                        <div className="mt-4 flex justify-end"><Button type="button" variant="outline" size="sm" onClick={() => editPage(page)}>Edit page</Button></div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-500">Deleting a page removes its CMS record. It does not delete uploaded media files.</p>
+                </CardContent>
               </Card>
             </div>
           </TabsContent>
