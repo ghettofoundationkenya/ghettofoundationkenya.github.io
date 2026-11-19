@@ -69,7 +69,6 @@ const AdminDashboard = () => {
       supabase.from('donations').select('*').order('created_at', { ascending: false }),
       supabase.from('contact_submissions').select('*').order('created_at', { ascending: false }),
       supabase.from('programs').select('*').order('display_order', { ascending: true }),
-      supabase.from('site_pages').select('*').order('updated_at', { ascending: false }),
     ]);
     setVolunteers(v.data || []);
     setEvents(e.data || []);
@@ -80,7 +79,7 @@ const AdminDashboard = () => {
     setDonations(d.data || []);
     setContacts(c.data || []);
     setPrograms(p.data || []);
-    const pageResult = await supabase.from('site_pages').select('*').order('updated_at', { ascending: false });
+    const pageResult = await supabase.from('site_pages' as any).select('*').order('updated_at', { ascending: false });
     setPages(pageResult.data || []);
   };
 
@@ -90,10 +89,10 @@ const AdminDashboard = () => {
     try { parsedContent = JSON.parse(pageForm.content); }
     catch { toast({ title: 'Invalid page content', description: 'Content must be valid JSON.', variant: 'destructive' }); return; }
     const payload = { ...pageForm, content: parsedContent, published_at: pageForm.status === 'published' ? new Date().toISOString() : null, updated_at: new Date().toISOString() };
-    const { error } = await supabase.from('site_pages').upsert(payload, { onConflict: 'slug' });
+    const { error } = await supabase.from('site_pages' as any).upsert(payload, { onConflict: 'slug' });
     if (error) { toast({ title: 'Could not save page', description: error.message, variant: 'destructive' }); return; }
     toast({ title: 'Page saved', description: 'The CMS page record has been saved.' });
-    setPageForm({ slug: '', title: '', page_type: 'standard', content: '{\\n  "sections": []\\n}', seo_title: '', seo_description: '', hero_image: '', status: 'draft' });
+    setPageForm({ slug: '', title: '', page_type: 'standard', content: '{\n  "sections": []\n}', seo_title: '', seo_description: '', hero_image: '', status: 'draft' });
     fetchAll();
   };
 
