@@ -90,17 +90,22 @@ function setMeta(name: string, content: string, attribute: "name" | "property" =
 
 const SEO = () => {
   const { pathname } = useLocation();
+  const normalizedPath = pathname === "/" ? "/" : pathname.replace(/\/+$/, "");
 
   useEffect(() => {
-    const page = pages[pathname] ?? {
+    const page = pages[normalizedPath] ?? {
       title: "Page Not Found | Ghetto Foundation",
       description: "The page you are looking for could not be found on the Ghetto Foundation website.",
     };
-    const canonical = SITE + (pathname === "/" ? "/" : pathname.replace(/\/$/, ""));
+    const canonical = SITE + normalizedPath;
     document.title = page.title;
 
     setMeta("description", page.description);
-    setMeta("robots", pages[pathname] ? "index,follow" : "noindex,follow");
+    // Remove duplicate robots tags so a stale noindex directive cannot override this page.
+    document.head.querySelectorAll('meta[name="robots"]').forEach((tag, index) => {
+      if (index > 0) tag.remove();
+    });
+    setMeta("robots", pages[normalizedPath] ? "index,follow,max-image-preview:large" : "noindex,follow");
     setMeta("og:type", "website", "property");
     setMeta("og:site_name", "Ghetto Foundation", "property");
     setMeta("og:title", page.title, "property");
@@ -146,7 +151,7 @@ const SEO = () => {
         name: "Mathare, Nairobi, Kenya",
       },
     });
-  }, [pathname]);
+  }, [normalizedPath]);
 
   return null;
 };
