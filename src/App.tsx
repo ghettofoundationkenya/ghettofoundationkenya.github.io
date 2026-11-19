@@ -42,7 +42,12 @@ const redirects: Record<string, string> = {
   "/programs/community-projects": "/social-justice",
 };
 
-const CmsDetailRoute = ({ section }: { section: typeof partnerUp }) => {\n  const { slug } = useParams();\n  return <CmsPageOverride slug={section.path.slice(1) + "/" + (slug || "")} fallback={<DetailPage section={section} />} />;\n};\n\nconst App = () => (
+const CmsDetailRoute = ({ section }: { section: typeof partnerUp }) => {
+  const { slug } = useParams();
+  return <CmsPageOverride slug={section.path.slice(1) + "/" + (slug || "")} fallback={<DetailPage section={section} />} />;
+};
+
+const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
