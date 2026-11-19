@@ -17,6 +17,7 @@ type CmsSection = {
   button_label?: string;
   button_url?: string;
   background?: "muted" | "plain";
+  design?: { width?: number; align?: string; background?: string; padding?: number };
 };
 
 type CmsContent = {
@@ -24,6 +25,7 @@ type CmsContent = {
   intro?: string;
   hero_badge?: string;
   sections?: CmsSection[];
+  design?: { contentWidth?: number; sectionGap?: number; heroHeight?: number; alignment?: string };
 };
 
 type CmsPage = {
@@ -43,10 +45,10 @@ const CmsPageView = ({ page }: { page: CmsPage }) => {
   const content = page.content || {};
   return (
     <Layout>
-      <section className="relative isolate overflow-hidden px-4 py-24 text-white">
+      <section className="relative isolate overflow-hidden px-4 py-24 text-white" style={{ minHeight: content.design?.heroHeight || undefined, display: "flex", alignItems: "center" }}>
         {page.hero_image && <div className="absolute inset-0 -z-20 bg-cover bg-center" style={{ backgroundImage: `url("${page.hero_image}")` }} />}
         <div className="absolute inset-0 -z-10 bg-slate-950/70" />
-        <div className="mx-auto max-w-5xl text-center">
+        <div className="mx-auto w-full max-w-5xl text-center" style={{ maxWidth: content.design?.contentWidth ? `${content.design.contentWidth}%` : undefined, textAlign: (content.design?.alignment as any) || "center" }}>
           {content.hero_badge && <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-white/80">{content.hero_badge}</p>}
           <h1 className="mb-5 text-4xl font-bold md:text-6xl">{page.title}</h1>
           {content.lead && <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">{content.lead}</p>}
@@ -54,8 +56,8 @@ const CmsPageView = ({ page }: { page: CmsPage }) => {
       </section>
       {content.intro && <section className="px-4 py-14"><div className="mx-auto max-w-3xl"><Paragraphs body={content.intro} /></div></section>}
       {(content.sections || []).map((section, index) => (
-        <section key={index} className={`px-4 py-14 ${section.background === "muted" ? "bg-gray-50" : "bg-white"}`}>
-          <div className="mx-auto max-w-6xl">
+        <section key={index} className={`px-4 ${section.background === "muted" ? "bg-gray-50" : "bg-white"}`} style={{ paddingTop: content.design?.sectionGap ? `${content.design.sectionGap / 2}px` : "3.5rem", paddingBottom: content.design?.sectionGap ? `${content.design.sectionGap / 2}px` : "3.5rem" }}>
+          <div className="mx-auto max-w-6xl" style={{ width: section.design?.width ? `${section.design.width}%` : undefined, textAlign: (section.design?.align as any) || undefined, padding: section.design?.padding ? `${section.design.padding}px` : undefined, background: section.design?.background === "muted" ? "#f3e5d8" : undefined, borderRadius: section.design?.background === "muted" ? "1rem" : undefined }}>
             {section.heading && <h2 className="mb-8 text-center text-3xl font-bold md:text-4xl">{section.heading}</h2>}
             {section.type === "image" && section.image && <img src={section.image} alt={section.alt || section.heading || page.title} loading="lazy" className="mx-auto max-h-[620px] w-full rounded-2xl object-cover shadow-md" />}
             {(!section.type || section.type === "text") && <div className="mx-auto max-w-3xl"><Paragraphs body={section.body} /></div>}
