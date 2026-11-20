@@ -21,7 +21,7 @@ type CmsSection = {
 };
 
 type CmsContent = {
-  designWorkspace?: { version?: number; blocks?: Array<any>; theme?: { accent?: string; background?: string; text?: string; font?: string } };
+  designWorkspace?: { version?: number; blocks?: Array<any>; theme?: { accent?: string; background?: string; text?: string; font?: string } };\n  visualEdits?: Array<{ selector: string; kind: "text" | "image"; value: string }>;
   lead?: string;
   intro?: string;
   hero_badge?: string;
@@ -125,7 +125,7 @@ const CmsPageView = ({ page }: { page: CmsPage }) => {
   );
 };
 
-export default function CmsPageOverride({ slug, fallback }: { slug: string; fallback: ReactNode }) {
+const VisualEditOverlay = ({ edits, children }: { edits: NonNullable<CmsContent["visualEdits"]>; children: ReactNode }) => {\n  useEffect(() => {\n    const apply = () => edits.forEach((edit) => {\n      try {\n        const element = document.querySelector(edit.selector) as HTMLElement | HTMLImageElement | null;\n        if (!element) return;\n        if (edit.kind === "image" && element instanceof HTMLImageElement) element.src = edit.value;\n        if (edit.kind === "text") element.textContent = edit.value;\n      } catch { /* Ignore selectors that no longer exist on the source page. */ }\n    });\n    apply();\n    const observer = new MutationObserver(apply);\n    observer.observe(document.body, { childList: true, subtree: true });\n    return () => observer.disconnect();\n  }, [edits]);\n  return <>{children}</>;\n};\n\nexport default function CmsPageOverride({ slug, fallback }: { slug: string; fallback: ReactNode }) {
   const [page, setPage] = useState<CmsPage | null>(null);
   const [checked, setChecked] = useState(false);
 
@@ -144,5 +144,5 @@ export default function CmsPageOverride({ slug, fallback }: { slug: string; fall
   }, [slug]);
 
   if (!checked) return <div className="min-h-screen bg-background" aria-label="Loading page" />;
-  return page ? <CmsPageView page={page} /> : <>{fallback}</>;
+  if (!page) return <>{fallback}</>;\n  if (page.content?.visualEdits?.length) return <VisualEditOverlay edits={page.content.visualEdits}>{fallback}</VisualEditOverlay>;\n  return <CmsPageView page={page} />;
 }
