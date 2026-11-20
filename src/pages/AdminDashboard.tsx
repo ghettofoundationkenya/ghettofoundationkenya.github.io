@@ -74,7 +74,7 @@ export default function AdminDashboard() {
    };
    const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node instanceof Element)markEditable(node);})));
    observer.observe(doc.body,{childList:true,subtree:true});
- },[]);;
+ },[]);
  useEffect(()=>{ if(mode==="content" && frame.current){setEdits([]);setSelected(null);setSavedDraft(false);}},[mode,slug]);
  const applySelectedText=(value:string)=>{if(!selected)return;const doc=getDocument();const el=doc?.querySelector(selected.selector) as HTMLElement|null;if(el)el.innerText=value;setSelected(s=>s?{...s,value}:s);setEdits(prev=>prev.map(x=>x.selector===selected.selector?{...x,value}:x));setSavedDraft(false);};
  const replaceSelectedImage=async(file?:File)=>{if(!file||!selected||selected.kind!=="image")return;setBusy(true);try{const {processImage}=await import("@/lib/imageProcessing");const p=await processImage(file,{maxWidth:1800,maxHeight:1800,thumbSize:400,quality:.84});const path="page-edits/"+Date.now()+"."+p.ext;const {error}=await supabase.storage.from("media").upload(path,p.main,{contentType:p.mime,cacheControl:"31536000"});if(error)throw error;const url=supabase.storage.from("media").getPublicUrl(path).data.publicUrl;const el=getDocument()?.querySelector(selected.selector) as HTMLImageElement|null;if(el)el.src=url;setSelected(s=>s?{...s,value:url}:s);setEdits(prev=>prev.map(x=>x.selector===selected.selector?{...x,value:url}:x));setSavedDraft(false);toast({title:"Image replaced in preview"});}catch(e:any){toast({title:"Image upload failed",description:e.message,variant:"destructive"});}finally{setBusy(false);}};
