@@ -46,27 +46,35 @@ export default function AdminDashboard() {
  const getDocument = () => frame.current?.contentDocument || null;
  const refreshEditor = useCallback(() => {
    const doc=getDocument(); if(!doc) return;
-   doc.querySelectorAll("h1,h2,h3,h4,p,li,a,button").forEach(el=>{
-     if(!(el as HTMLElement).innerText?.trim()) return;
-     (el as HTMLElement).dataset.gfEditable="text";
-     (el as HTMLElement).style.cursor="text";
-   });
-   doc.querySelectorAll("img").forEach(el=>{(el as HTMLElement).dataset.gfEditable="image";(el as HTMLElement).style.cursor="pointer";});
-   const style=doc.createElement("style"); style.id="gf-editor-style";
+   const markEditable=(root:ParentNode)=>{
+     root.querySelectorAll?.("h1,h2,h3,h4,p,li,a,button").forEach(el=>{
+       if(!(el as HTMLElement).innerText?.trim()) return;
+       (el as HTMLElement).dataset.gfEditable="text";
+       (el as HTMLElement).style.cursor="text";
+     });
+     root.querySelectorAll?.("img").forEach(el=>{(el as HTMLElement).dataset.gfEditable="image";(el as HTMLElement).style.cursor="pointer";});
+     if(root instanceof Element && root.matches("h1,h2,h3,h4,p,li,a,button,img")){
+       (root as HTMLElement).dataset.gfEditable=root.tagName.toLowerCase()==="img"?"image":"text";
+     }
+   };
+   markEditable(doc);
+   const style=doc.createElement("style");style.id="gf-editor-style";
    style.textContent='[data-gf-editable="text"]:hover{outline:2px dashed #f97316!important;outline-offset:3px;cursor:text!important}[data-gf-selected="true"]{outline:3px solid #f97316!important;outline-offset:3px}[data-gf-editable="image"]:hover{outline:3px dashed #f97316!important;outline-offset:3px}';
    doc.getElementById("gf-editor-style")?.remove();doc.head.appendChild(style);
    doc.body.onclick=(event)=>{
-     const target=event.target as HTMLElement; const el=target.closest("[data-gf-editable]") as HTMLElement|null;
-     if(!el)return; event.preventDefault();event.stopPropagation();
+     const target=event.target as HTMLElement;const el=target.closest("[data-gf-editable]") as HTMLElement|null;
+     if(!el)return;event.preventDefault();event.stopPropagation();
      doc.querySelectorAll('[data-gf-selected="true"]').forEach(x=>x.removeAttribute("data-gf-selected"));el.dataset.gfSelected="true";
-     const kind=el.dataset.gfEditable==="image"?"image":"text"; const selector=selectorFor(el);
+     const kind=el.dataset.gfEditable==="image"?"image":"text";const selector=selectorFor(el);
      const value=kind==="image"?(el as HTMLImageElement).src:el.innerText;
      const item:VisualEdit={selector,kind,original:kind==="image"?(el as HTMLImageElement).getAttribute("src")||"":el.innerText,value,tag:el.tagName.toLowerCase()};
      setSelected(item);
      setEdits(prev=>{const found=prev.findIndex(x=>x.selector===selector);if(found<0)return [...prev,item];const next=[...prev];next[found]={...next[found],value};return next;});
-     if(kind==="text"){el.contentEditable="true";el.focus();el.oninput=()=>{const v=el.innerText;setSelected(s=>s?.selector===selector?{...s,value:v}:s);setEdits(prev=>prev.map(x=>x.selector===selector?{...x,value:v}:x));};}
+     if(kind==="text"){el.contentEditable="true";el.focus();el.oninput=()=>{const v=el.innerText;setSelected(vs=>vs?.selector===selector?{...vs,value:v}:vs);setEdits(prev=>prev.map(x=>x.selector===selector?{...x,value:v}:x));};}
    };
- },[]);
+   const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node instanceof Element)markEditable(node);})));
+   observer.observe(doc.body,{childList:true,subtree:true});
+ },[]);;
  useEffect(()=>{ if(mode==="content" && frame.current){setEdits([]);setSelected(null);setSavedDraft(false);}},[mode,slug]);
  const applySelectedText=(value:string)=>{if(!selected)return;const doc=getDocument();const el=doc?.querySelector(selected.selector) as HTMLElement|null;if(el)el.innerText=value;setSelected(s=>s?{...s,value}:s);setEdits(prev=>prev.map(x=>x.selector===selected.selector?{...x,value}:x));setSavedDraft(false);};
  const replaceSelectedImage=async(file?:File)=>{if(!file||!selected||selected.kind!=="image")return;setBusy(true);try{const {processImage}=await import("@/lib/imageProcessing");const p=await processImage(file,{maxWidth:1800,maxHeight:1800,thumbSize:400,quality:.84});const path="page-edits/"+Date.now()+"."+p.ext;const {error}=await supabase.storage.from("media").upload(path,p.main,{contentType:p.mime,cacheControl:"31536000"});if(error)throw error;const url=supabase.storage.from("media").getPublicUrl(path).data.publicUrl;const el=getDocument()?.querySelector(selected.selector) as HTMLImageElement|null;if(el)el.src=url;setSelected(s=>s?{...s,value:url}:s);setEdits(prev=>prev.map(x=>x.selector===selected.selector?{...x,value:url}:x));setSavedDraft(false);toast({title:"Image replaced in preview"});}catch(e:any){toast({title:"Image upload failed",description:e.message,variant:"destructive"});}finally{setBusy(false);}};
