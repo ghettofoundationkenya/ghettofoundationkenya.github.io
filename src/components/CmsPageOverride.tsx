@@ -21,6 +21,7 @@ type CmsSection = {
 };
 
 type CmsContent = {
+  designWorkspace?: { version?: number; blocks?: Array<any>; theme?: { accent?: string; background?: string; text?: string; font?: string } };
   lead?: string;
   intro?: string;
   hero_badge?: string;
@@ -41,8 +42,58 @@ const Paragraphs = ({ body }: { body?: string | string[] }) => {
   return <div className="space-y-4 text-lg leading-relaxed text-gray-700">{paragraphs.map((p, i) => <p key={i}>{p}</p>)}</div>;
 };
 
+const DesignWorkspaceView = ({ page, workspace }: { page: CmsPage; workspace: NonNullable<CmsContent["designWorkspace"]> }) => {
+  const theme = workspace.theme || {};
+  const blocks = workspace.blocks || [];
+  const embedUrl = (block: any): string => {
+    const raw = (block.url || "").trim();
+    if (!raw) return "";
+    try {
+      const url = new URL(raw);
+      if (url.protocol !== "https:") return "";
+      if (block.type === "youtube") {
+        if (url.hostname.includes("youtu.be")) return "https://www.youtube.com/embed/" + url.pathname.replace(/^\//, "");
+        if (url.hostname.includes("youtube.com")) return url.pathname === "/watch" ? "https://www.youtube.com/embed/" + url.searchParams.get("v") : raw;
+      }
+      if (block.type === "docs") return raw.replace(/\/edit(?:\?.*)?$/, "/preview");
+      if (block.type === "slides") return raw.replace(/\/edit(?:\?.*)?$/, "/embed");
+      if (block.type === "sheets") return raw.replace(/\/edit(?:\?.*)?$/, "/preview");
+      return raw;
+    } catch { return ""; }
+  };
+  return <Layout>
+    <main className="min-h-screen" style={{ background: theme.background || "#ffffff", color: theme.text || "#202020", fontFamily: theme.font || "Inter, sans-serif" }}>
+      <header className="border-b border-black/10 px-5 py-5"><div className="mx-auto max-w-6xl text-sm font-bold tracking-wide">GHETTO FOUNDATION <span className="float-right font-normal opacity-70">{page.title}</span></div></header>
+      <section className="mx-auto max-w-6xl px-5 py-12 md:py-16">
+        <h1 className="mb-8 text-4xl font-bold md:text-5xl">{page.title}</h1>
+        <div className="space-y-7">
+          {blocks.map((b: any, index: number) => {
+            const width = Math.min(100, Math.max(25, Number(b.width) || 100));
+            const frameUrl = embedUrl(b);
+            return <section key={b.id || index} className="mx-auto" style={{ width: width + "%" }}>
+              {b.type === "text" && <div><h2 className="mb-3 text-2xl font-bold">{b.title}</h2><div className="whitespace-pre-wrap text-lg leading-relaxed">{b.text}</div></div>}
+              {(b.type === "image" || b.type === "upload") && b.image && <figure><img src={b.image} alt={b.alt || b.title || page.title} loading="lazy" className="h-auto max-h-[680px] w-full rounded-xl object-cover"/>{b.alt && <figcaption className="mt-2 text-sm opacity-70">{b.alt}</figcaption>}</figure>}
+              {b.type === "carousel" && <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[b.image, ...(b.items || [])].filter(Boolean).map((src: string, i: number) => <img key={i} src={src} alt={b.alt || (b.title + " " + (i + 1))} loading="lazy" className="h-56 w-full rounded-xl object-cover"/> )}</div>}
+              {b.type === "button" && b.url && <a href={b.url} className="inline-flex rounded-lg px-6 py-3 font-semibold text-white" style={{ background: theme.accent || "#e87524" }}>{b.title || "Learn more"}</a>}
+              {b.type === "divider" && <hr className="border-current/20"/>}
+              {b.type === "spacer" && <div aria-hidden="true" style={{ height: Math.min(400, Math.max(8, Number(b.height) || 64)) }}/>}
+              {b.type === "collapsible" && <details className="rounded-xl border border-current/15 p-5"><summary className="cursor-pointer text-lg font-bold">{b.title}</summary><p className="mt-3 whitespace-pre-wrap leading-relaxed">{b.text}</p></details>}
+              {b.type === "toc" && <nav className="rounded-xl bg-black/5 p-5"><strong>On this page</strong><ul className="mt-3 list-disc pl-5">{blocks.filter((x: any) => x.type === "text" && x.title).map((x: any) => <li key={x.id}>{x.title}</li>)}</ul></nav>}
+              {b.type === "layout" && <div className="grid gap-5 md:grid-cols-2"><div className="rounded-xl border border-current/15 p-5"><h3 className="font-semibold">Column 1</h3><p className="mt-2 opacity-70">Add content to this layout in the design editor.</p></div><div className="rounded-xl border border-current/15 p-5"><h3 className="font-semibold">Column 2</h3><p className="mt-2 opacity-70">Add content to this layout in the design editor.</p></div></div>}
+              {b.type === "social" && b.url && <a href={b.url} rel="noreferrer" target="_blank" className="font-semibold underline" style={{ color: theme.accent || "#e87524" }}>{b.title || "Follow us"}</a>}
+              {b.type === "html" && <div className="rounded-xl border border-current/15 p-4"><p className="font-semibold">External embed</p>{b.url && <a href={b.url} target="_blank" rel="noreferrer" className="underline" style={{ color: theme.accent || "#e87524" }}>Open embedded content</a>}<p className="mt-2 text-xs opacity-60">For security, custom HTML is not executed on the public page.</p></div>}
+              {["embed","youtube","calendar","map","docs","slides","sheets","forms","charts","drive","drive-folder"].includes(b.type) && <div className="overflow-hidden rounded-xl border border-current/15"><div className="px-4 py-3 text-sm font-semibold">{b.title || b.type}</div>{frameUrl ? <iframe src={frameUrl} title={b.title || b.type} loading="lazy" className="h-[420px] w-full border-0" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" referrerPolicy="strict-origin-when-cross-origin"/> : <div className="p-5 text-sm opacity-70">Add a valid HTTPS embed URL to display this content.</div>}</div>}
+            </section>;
+          })}
+        </div>
+      </section>
+    </main>
+  </Layout>;
+};
+
 const CmsPageView = ({ page }: { page: CmsPage }) => {
   const content = page.content || {};
+  if (content.designWorkspace?.version === 1) return <DesignWorkspaceView page={page} workspace={content.designWorkspace} />;
   return (
     <Layout>
       <section className="relative isolate overflow-hidden px-4 py-24 text-white" style={{ minHeight: content.design?.heroHeight || undefined, display: "flex", alignItems: "center" }}>
