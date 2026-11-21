@@ -127,7 +127,24 @@ const CmsPageView = ({ page }: { page: CmsPage }) => {
 };
 
 const VisualEditOverlay = ({ edits, children }: { edits: NonNullable<CmsContent["visualEdits"]>; children: ReactNode }) => {
-  useEffect(() => {\n    const apply = () => edits.forEach((edit) => {\n      try {\n        const element = document.querySelector(edit.selector) as HTMLElement | HTMLImageElement | null;\n        if (!element) return;\n        if (edit.kind === "image" && element instanceof HTMLImageElement && element.getAttribute("src") !== edit.value) element.src = edit.value;\n        if (edit.kind === "text" && element.textContent !== edit.value) element.textContent = edit.value;\n      } catch { /* Ignore selectors that no longer exist on the source page. */ }\n    });\n    apply();\n    const observer = new MutationObserver(apply);\n    observer.observe(document.body, { childList: true, subtree: true });\n    return () => observer.disconnect();\n  }, [edits]);\n  return <>{children}</>;\n};\n\nexport default function CmsPageOverride({ slug, fallback }: { slug: string; fallback: ReactNode }) {
+  useEffect(() => {
+    const apply = () => edits.forEach((edit) => {
+      try {
+        const element = document.querySelector(edit.selector) as HTMLElement | HTMLImageElement | null;
+        if (!element) return;
+        if (edit.kind === "image" && element instanceof HTMLImageElement && element.getAttribute("src") !== edit.value) element.src = edit.value;
+        if (edit.kind === "text" && element.textContent !== edit.value) element.textContent = edit.value;
+      } catch { /* Ignore selectors that no longer exist on the source page. */ }
+    });
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [edits]);
+  return <>{children}</>;
+};
+
+export default function CmsPageOverride({ slug, fallback }: { slug: string; fallback: ReactNode }) {
   const [page, setPage] = useState<CmsPage | null>(null);
   const [checked, setChecked] = useState(false);
 
@@ -147,5 +164,7 @@ const VisualEditOverlay = ({ edits, children }: { edits: NonNullable<CmsContent[
 
   if (!checked) return <div className="min-h-screen bg-background" aria-label="Loading page" />;
   if (!page) return <>{fallback}</>;
-  if (page.content?.designWorkspace?.version === 1) return <CmsPageView page={page} />;\n  if (page.content?.visualEdits?.length) return <VisualEditOverlay edits={page.content.visualEdits}>{fallback}</VisualEditOverlay>;\n  return <CmsPageView page={page} />;
+  if (page.content?.designWorkspace?.version === 1) return <CmsPageView page={page} />;
+  if (page.content?.visualEdits?.length) return <VisualEditOverlay edits={page.content.visualEdits}>{fallback}</VisualEditOverlay>;
+  return <CmsPageView page={page} />;
 }
