@@ -13,7 +13,6 @@ import CmsPageOverride from "./components/CmsPageOverride";
 const Donate = lazy(() => import("./pages/Donate"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const AdminRecords = lazy(() => import("./pages/AdminRecords"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -69,7 +68,6 @@ const App = () => (
             {/* Protected administration portal */}
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/records" element={<AdminRecords />} />
 
             {Object.entries(redirects).map(([from, to]) => (
               <Route key={from} path={from} element={<Navigate to={to} replace />} />
