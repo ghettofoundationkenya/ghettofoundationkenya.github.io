@@ -21,7 +21,8 @@ type CmsSection = {
 };
 
 type CmsContent = {
-  designWorkspace?: { version?: number; blocks?: Array<any>; theme?: { accent?: string; background?: string; text?: string; font?: string } };\n  visualEdits?: Array<{ selector: string; kind: "text" | "image"; value: string }>;
+  designWorkspace?: { version?: number; blocks?: Array<any>; theme?: { accent?: string; background?: string; text?: string; font?: string } };
+  visualEdits?: Array<{ selector: string; kind: "text" | "image"; value: string }>;
   lead?: string;
   intro?: string;
   hero_badge?: string;
