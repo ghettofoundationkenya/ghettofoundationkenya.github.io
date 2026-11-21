@@ -164,7 +164,7 @@ export default function CmsPageOverride({ slug, fallback }: { slug: string; fall
 
   if (!checked) return <div className="min-h-screen bg-background" aria-label="Loading page" />;
   if (!page) return <>{fallback}</>;
-  if (page.content?.designWorkspace?.version === 1) return <CmsPageView page={page} />;
   if (page.content?.visualEdits?.length) return <VisualEditOverlay edits={page.content.visualEdits}>{fallback}</VisualEditOverlay>;
+  if (page.content?.designWorkspace?.version === 1) return <CmsPageView page={page} />;
   return <CmsPageView page={page} />;
 }
