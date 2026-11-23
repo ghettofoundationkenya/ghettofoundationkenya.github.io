@@ -61,9 +61,13 @@ export default function AdminDashboard() {
    const style=doc.createElement("style");style.id="gf-editor-style";
    style.textContent='[data-gf-editable="text"]:hover{outline:2px dashed #f97316!important;outline-offset:3px;cursor:text!important}[data-gf-selected="true"]{outline:3px solid #f97316!important;outline-offset:3px}[data-gf-editable="image"]:hover{outline:3px dashed #f97316!important;outline-offset:3px}';
    doc.getElementById("gf-editor-style")?.remove();doc.head.appendChild(style);
-   doc.body.onclick=(event)=>{
-     const target=event.target as HTMLElement;const el=target.closest("[data-gf-editable]") as HTMLElement|null;
-     if(!el)return;event.preventDefault();event.stopPropagation();
+   const previousClickHandler=(doc as any).__gfContentEditorClick as ((event:MouseEvent)=>void)|undefined;
+   if(previousClickHandler)doc.removeEventListener("click",previousClickHandler,true);
+   const handlePreviewClick=(event:MouseEvent)=>{
+     const target=event.target as HTMLElement|null;
+     const el=target?.closest("[data-gf-editable]") as HTMLElement|null;
+     if(!el)return;
+     event.preventDefault();event.stopPropagation();
      doc.querySelectorAll('[data-gf-selected="true"]').forEach(x=>x.removeAttribute("data-gf-selected"));el.dataset.gfSelected="true";
      const kind=el.dataset.gfEditable==="image"?"image":"text";const selector=selectorFor(el);
      const value=kind==="image"?(el as HTMLImageElement).src:el.innerText;
@@ -72,6 +76,9 @@ export default function AdminDashboard() {
      setEdits(prev=>{const found=prev.findIndex(x=>x.selector===selector);if(found<0)return [...prev,item];const next=[...prev];next[found]={...next[found],value};return next;});
      if(kind==="text"){el.contentEditable="true";el.focus();el.oninput=()=>{const v=el.innerText;setSelected(vs=>vs?.selector===selector?{...vs,value:v}:vs);setEdits(prev=>prev.map(x=>x.selector===selector?{...x,value:v}:x));};}
    };
+   (doc as any).__gfContentEditorClick=handlePreviewClick;
+   // Capture clicks at the document before page-level React handlers can stop bubbling.
+   doc.addEventListener("click",handlePreviewClick,true);
    const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node instanceof Element)markEditable(node);})));
    observer.observe(doc.body,{childList:true,subtree:true});
  },[]);
