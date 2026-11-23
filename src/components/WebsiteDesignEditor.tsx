@@ -79,7 +79,7 @@ export default function WebsiteDesignEditor({page,pages,onBack}:{page:PageItem;p
     };
     doc.addEventListener("click",handler,true);
     if(w)w.__gfDesignClick=handler;
-    const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node instanceof Element)mark(node);})));
+    const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node.nodeType===1)mark(node as Element);})));
     observer.observe(doc.body,{childList:true,subtree:true});
     if(w)w.__gfDesignObserver=observer;
   };
