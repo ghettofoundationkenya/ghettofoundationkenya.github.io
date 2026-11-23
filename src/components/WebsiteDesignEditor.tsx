@@ -26,7 +26,63 @@ export default function WebsiteDesignEditor({page,pages,onBack}:{page:PageItem;p
  const active=blocks.find(b=>b.id===selected)||null;
   const applyExistingText=(value:string)=>{if(!selectedExisting)return;const doc=livePreview.current?.contentDocument;const el=doc?.querySelector(selectedExisting.selector) as HTMLElement|null;if(el)el.innerText=value;setSelectedExisting(v=>v?{...v,value}:v);setExistingEdits(v=>v.map(x=>x.selector===selectedExisting.selector?{...x,value}:x));};
   const applyExistingImage=(value:string)=>{if(!selectedExisting)return;const doc=livePreview.current?.contentDocument;const el=doc?.querySelector(selectedExisting.selector) as HTMLImageElement|null;if(el)el.src=value;setSelectedExisting(v=>v?{...v,value}:v);setExistingEdits(v=>v.map(x=>x.selector===selectedExisting.selector?{...x,value}:x));};
-  const enableLiveEditing=()=>{const doc=livePreview.current?.contentDocument;if(!doc?.body)return;const mark=(root:ParentNode)=>root.querySelectorAll?.("h1,h2,h3,h4,h5,p,li,a,button,img").forEach(node=>{const el=node as HTMLElement;if(el.tagName.toLowerCase()==="img"||(el.innerText||"").trim()){el.dataset.gfDesignEditable=el.tagName.toLowerCase()==="img"?"image":"text";el.style.cursor="crosshair";}});mark(doc);let css=doc.getElementById("gf-design-edit-style") as HTMLStyleElement|null;if(!css){css=doc.createElement("style");css.id="gf-design-edit-style";doc.head.appendChild(css);}css.textContent="[data-gf-design-editable]:hover{outline:2px dashed #f97316!important;outline-offset:3px;cursor:crosshair!important}[data-gf-design-selected=true]{outline:3px solid #f97316!important;outline-offset:3px}";doc.body.onclick=(event)=>{const target=event.target as HTMLElement;const el=target.closest("[data-gf-design-editable]") as HTMLElement|null;if(!el)return;event.preventDefault();event.stopPropagation();doc.querySelectorAll("[data-gf-design-selected=true]").forEach(x=>x.removeAttribute("data-gf-design-selected"));el.dataset.gfDesignSelected="true";const kind=el.dataset.gfDesignEditable as "text"|"image";const selector=selectorForExisting(el);const value=kind==="image"?(el as HTMLImageElement).src:el.innerText;const item:ExistingEdit={selector,kind,original:kind==="image"?(el as HTMLImageElement).getAttribute("src")||"":el.innerText,value,tag:el.tagName.toLowerCase()};setSelectedExisting(item);setSelected(null);setExistingEdits(prev=>{const index=prev.findIndex(x=>x.selector===selector);if(index<0)return [...prev,item];const next=[...prev];next[index]={...next[index],value};return next;});};};
+  const enableLiveEditing=()=>{
+    const doc=livePreview.current?.contentDocument;
+    if(!doc?.body||!doc.head)return;
+    const editableSelector="h1,h2,h3,h4,h5,h6,p,li,a,button,img,span,label,figcaption,blockquote,td,th";
+    const mark=(root:ParentNode)=>{
+      root.querySelectorAll?.(editableSelector).forEach(node=>{
+        const el=node as HTMLElement;
+        if(el.tagName.toLowerCase()==="img"||(el.innerText||"").trim()){
+          el.dataset.gfDesignEditable=el.tagName.toLowerCase()==="img"?"image":"text";
+          el.style.cursor="crosshair";
+        }
+      });
+    };
+    mark(doc);
+    let css=doc.getElementById("gf-design-edit-style") as HTMLStyleElement|null;
+    if(!css){css=doc.createElement("style");css.id="gf-design-edit-style";doc.head.appendChild(css);}
+    css.textContent="[data-gf-design-editable]:hover{outline:2px dashed #f97316!important;outline-offset:3px;cursor:crosshair!important}[data-gf-design-selected=true]{outline:3px solid #f97316!important;outline-offset:3px}";
+    const w=doc.defaultView as (Window & {__gfDesignClick?:EventListener;__gfDesignObserver?:MutationObserver})|null;
+    if(w?.__gfDesignClick)doc.removeEventListener("click",w.__gfDesignClick,true);
+    w?.__gfDesignObserver?.disconnect();
+    const handler:EventListener=(event)=>{
+      const target=event.target as HTMLElement|null;
+      if(!target)return;
+      let el=target.closest("[data-gf-design-editable]") as HTMLElement|null;
+      if(!el){
+        const image=target.closest("img") as HTMLImageElement|null;
+        if(image){el=image;el.dataset.gfDesignEditable="image";}
+      }
+      if(!el){
+        const candidates=target.closest(editableSelector) as HTMLElement|null;
+        if(candidates&&(candidates.innerText||"").trim()){el=candidates;el.dataset.gfDesignEditable="text";}
+      }
+      if(!el){
+        let parent=target;
+        while(parent&&parent!==doc.body){
+          const directText=Array.from(parent.childNodes).some(n=>n.nodeType===Node.TEXT_NODE&&(n.textContent||"").trim());
+          if(directText&&(parent.innerText||"").trim()){el=parent;el.dataset.gfDesignEditable="text";break;}
+          parent=parent.parentElement as HTMLElement;
+        }
+      }
+      if(!el)return;
+      event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+      doc.querySelectorAll("[data-gf-design-selected=true]").forEach(x=>x.removeAttribute("data-gf-design-selected"));
+      el.dataset.gfDesignSelected="true";
+      const kind=(el.dataset.gfDesignEditable==="image"?"image":"text") as "text"|"image";
+      const selector=selectorForExisting(el);
+      const value=kind==="image"?(el as HTMLImageElement).src:el.innerText;
+      const item:ExistingEdit={selector,kind,original:kind==="image"?(el as HTMLImageElement).getAttribute("src")||"":el.innerText,value,tag:el.tagName.toLowerCase()};
+      setSelectedExisting(item);setSelected(null);
+      setExistingEdits(prev=>{const index=prev.findIndex(x=>x.selector===selector);if(index<0)return [...prev,item];const next=[...prev];next[index]={...next[index],value};return next;});
+    };
+    doc.addEventListener("click",handler,true);
+    if(w)w.__gfDesignClick=handler;
+    const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{if(node instanceof Element)mark(node);})));
+    observer.observe(doc.body,{childList:true,subtree:true});
+    if(w)w.__gfDesignObserver=observer;
+  };
  useEffect(()=>{let alive=true;(async()=>{const {data,error}=await supabase.from("site_pages" as any).select("content").eq("slug",page.slug).maybeSingle();if(!alive)return;if(error){toast({title:"Could not load this page draft",description:error.message,variant:"destructive"});return;}const savedContent=(data?.content as any)||{};const workspace=savedContent.designWorkspaceDraft||savedContent.designWorkspace;if(workspace?.version===1){setBlocks(Array.isArray(workspace.blocks)?workspace.blocks:[]);setTheme(workspace.theme||{accent:"#e87524",background:"#ffffff",text:"#202020",font:"Inter"});}else{setBlocks([]);setTheme({accent:"#e87524",background:"#ffffff",text:"#202020",font:"Inter"});}setSelected(null);setSelectedExisting(null);setExistingEdits([]);})();return()=>{alive=false;};},[page.slug,toast]);
  useEffect(()=>{const doc=livePreview.current?.contentDocument;if(!doc)return;doc.body.style.backgroundColor=theme.background;doc.body.style.color=theme.text;doc.body.style.fontFamily=theme.font+", sans-serif";let style=doc.getElementById("gf-live-theme-preview") as HTMLStyleElement|null;if(!style){style=doc.createElement("style");style.id="gf-live-theme-preview";doc.head.appendChild(style);}style.textContent="body{background-color:"+theme.background+" !important;color:"+theme.text+" !important;font-family:"+theme.font+",sans-serif !important}body p,body h1,body h2,body h3,body h4,body li{color:"+theme.text+" !important}a,button,.btn-hero{color:"+theme.accent+" !important;border-color:"+theme.accent+" !important}";},[theme,page.slug]);
  const visiblePalette=useMemo(()=>PALETTE.map(g=>({...g,items:g.items.filter(i=>(i.label+" "+i.description).toLowerCase().includes(search.toLowerCase()))})).filter(g=>g.items.length),[search]);
